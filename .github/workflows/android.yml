@@ -67,6 +67,26 @@ jobs:
           echo "${{ secrets.SIGNING_KEY }}" | base64 -d > release.jks
           echo "密钥已保存到 release.jks"
 
+      - name: 归一化密钥库为标准 JKS
+        if: github.event.inputs.build_type == 'release'
+        run: |
+          magic=$(xxd -p -l 4 release.jks)
+          size=$(wc -c < release.jks)
+          echo "keystore magic: $magic, size: $size"
+          if [ "$magic" = "feedfeed" ]; then SRCTYPE="JKS"; else SRCTYPE="PKCS12"; fi
+          echo "检测为 $SRCTYPE，转换为标准 JKS..."
+          keytool -importkeystore -noprompt \
+            -srckeystore release.jks -srcstoretype "$SRCTYPE" \
+            -srcstorepass "${{ secrets.KEY_STORE_PASSWORD }}" \
+            -srcalias "${{ secrets.ALIAS }}" \
+            -srckeypass "${{ secrets.KEY_PASSWORD }}" \
+            -destkeystore release-fixed.jks -deststoretype JKS \
+            -deststorepass "${{ secrets.KEY_STORE_PASSWORD }}" \
+            -destalias "${{ secrets.ALIAS }}" \
+            -destkeypass "${{ secrets.KEY_PASSWORD }}"
+          mv release-fixed.jks release.jks
+          echo "转换完成"
+
       - name: 构建 ${{ github.event.inputs.build_type }} APK
         run: |
           if [ "${{ github.event.inputs.build_type }}" == "debug" ]; then

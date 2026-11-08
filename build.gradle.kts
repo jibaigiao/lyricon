@@ -1,5 +1,6 @@
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import org.gradle.api.plugins.JavaPluginExtension
 
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -115,13 +116,20 @@ subprojects {
     }
 }
 
-// Kotlin 编译目标统一固定为 17，避免随 Gradle 运行 JDK 变化
-// （CI 用 JDK 21 读取新版 PKCS12 签名密钥时，jvmTarget 会默认变成 21，
-//   与 Java compileOptions 的 17 冲突而构建失败）
+// Kotlin 编译目标跟随各模块自身 Java target，避免随 Gradle 运行 JDK 变化
+// （CI 用 JDK 21 读取新版 PKCS12 签名密钥时，jvmTarget 默认会变成 21；
+//   subscriber 等模块的 Java target 刻意保持 11，不能统一锁死）
 subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            jvmTarget.set(project.provider {
+                val javaTarget =
+                    (project.extensions.findByName("android") as? com.android.build.api.dsl.CommonExtension)
+                        ?.compileOptions?.targetCompatibility
+                        ?: project.extensions.findByType(JavaPluginExtension::class.java)?.targetCompatibility
+                        ?: JavaVersion.VERSION_17
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(javaTarget.majorVersion)
+            })
         }
     }
 }

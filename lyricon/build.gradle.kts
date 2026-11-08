@@ -41,10 +41,10 @@ configure<ApplicationExtension> {
 
     signingConfigs {
         create("release") {
-            // 签名密钥实际为 PKCS12 格式（JDK 生成的 .jks 扩展名文件），
-            // 按 JKS 解析会报 "Tag number over 30 is not supported"
+            // JKS 类型会走 JDK 的 DualFormatJKS：先按 JKS 解析，失败回退 PKCS12，
+            // 兼容 secrets 里两种格式的签名密钥
             storeFile = file(System.getenv("RELEASE_STORE_FILE") ?: "release.jks")
-            storeType = "PKCS12"
+            storeType = "JKS"
             storePassword = System.getenv("RELEASE_STORE_PASSWORD")
             keyAlias = System.getenv("RELEASE_KEY_ALIAS")
             keyPassword = System.getenv("RELEASE_KEY_PASSWORD")

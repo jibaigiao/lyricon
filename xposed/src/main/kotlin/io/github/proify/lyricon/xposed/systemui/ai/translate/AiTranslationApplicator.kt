@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.xposed.systemui.ai.translate
 
 import android.util.Log
+import io.github.proify.lyricon.lyric.model.LyricMetadata
 import io.github.proify.lyricon.lyric.model.Song
 
 /** 把校验后的译文（按行 index）写回 Song 歌词。 */
@@ -24,7 +25,11 @@ internal object AiTranslationApplicator {
                 && transText.lowercase() != line.text?.trim()?.lowercase()
             ) {
                 appliedCount++
-                line.copy(translation = transText, translationWords = null)
+                line.copy(
+                    translation = transText,
+                    translationWords = null,
+                    metadata = LyricMetadata(line.metadata.orEmpty() + ("lyricon_ai_translation" to "true"))
+                )
             } else {
                 line
             }

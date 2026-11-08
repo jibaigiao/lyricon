@@ -21,7 +21,6 @@ internal object AiTranslationApplicator {
             val transText = translationsByIndex[index]?.translation?.trim()
 
             if (!transText.isNullOrBlank()
-                && line.translation.isNullOrBlank()
                 && transText.lowercase() != line.text?.trim()?.lowercase()
             ) {
                 appliedCount++

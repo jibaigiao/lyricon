@@ -23,4 +23,25 @@ class AiTranslationApplicatorTest {
         assertEquals("你好", line.translation)
         assertTrue(line.metadata?.getBoolean("lyricon_ai_translation") == true)
     }
+
+    @Test
+    fun `AI translation replaces an existing provider translation`() {
+        val song = Song(lyrics = listOf(
+            RichLyricLine(
+                begin = 0,
+                end = 1000,
+                text = "hello",
+                translation = "QQ 音乐原有译文"
+            )
+        ))
+
+        val translated = AiTranslationApplicator.apply(
+            song,
+            listOf(TranslationItem(index = 0, translation = "AI 新译文"))
+        )
+
+        val line = translated.lyrics!!.single()
+        assertEquals("AI 新译文", line.translation)
+        assertTrue(line.metadata?.getBoolean("lyricon_ai_translation") == true)
+    }
 }

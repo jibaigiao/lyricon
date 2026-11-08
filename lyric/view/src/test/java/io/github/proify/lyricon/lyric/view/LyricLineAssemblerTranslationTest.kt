@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.lyric.view
 
 import io.github.proify.lyricon.lyric.model.RichLyricLine
+import io.github.proify.lyricon.lyric.model.lyricMetadataOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -50,6 +51,22 @@ class LyricLineAssemblerTranslationTest {
         val secondary = assembler.buildSecondary(source)
 
         assertEquals("harmony", secondary.line.text)
+    }
+
+    @Test
+    fun `marked AI translation takes priority over secondary text`() {
+        val source = RichLyricLine(
+            text = "original",
+            secondary = "harmony",
+            translation = "AI translation",
+            metadata = lyricMetadataOf("lyricon_ai_translation" to "true")
+        )
+        val assembler = LyricLineAssembler(displayTranslation = false, displayRoma = false)
+
+        val secondary = assembler.buildSecondary(source)
+
+        assertEquals("AI translation", secondary.line.text)
+        assertEquals(true, secondary.alwaysShow)
     }
 
     @Test

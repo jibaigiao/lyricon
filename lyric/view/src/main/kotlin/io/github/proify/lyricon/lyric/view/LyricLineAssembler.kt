@@ -65,13 +65,20 @@ internal class LyricLineAssembler(
             isAlignedRight = source.isAlignedRight
 
             when {
+                source.metadata?.getBoolean("lyricon_ai_translation") == true
+                        && (!source.translation.isNullOrBlank()
+                        || !source.translationWords.isNullOrEmpty()) -> {
+                    text = source.translation
+                    words = wordBuilder.build(source, source.translation, source.translationWords)
+                    metadata = lyricMetadataOf("translation" to "true")
+                    generated = words !== source.translationWords
+                }
                 !source.secondary.isNullOrBlank() || !source.secondaryWords.isNullOrEmpty() -> {
                     text = source.secondary
                     words = wordBuilder.build(source, source.secondary, source.secondaryWords)
                     generated = words !== source.secondaryWords
                 }
-                (displayTranslation || source.metadata?.getBoolean("lyricon_ai_translation") == true)
-                        && (!source.translation.isNullOrBlank()
+                displayTranslation && (!source.translation.isNullOrBlank()
                         || !source.translationWords.isNullOrEmpty()) -> {
                     text = source.translation
                     words = wordBuilder.build(source, source.translation, source.translationWords)

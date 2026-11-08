@@ -114,3 +114,14 @@ subprojects {
         }
     }
 }
+
+// Kotlin 编译目标统一固定为 17，避免随 Gradle 运行 JDK 变化
+// （CI 用 JDK 21 读取新版 PKCS12 签名密钥时，jvmTarget 会默认变成 21，
+//   与 Java compileOptions 的 17 冲突而构建失败）
+subprojects {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+}
